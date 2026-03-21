@@ -1,3 +1,4 @@
+import '@/lib/ensure-local-storage';
 import './globals.css';
 import type { Metadata } from 'next';
 
