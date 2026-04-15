@@ -691,7 +691,7 @@ export function MergeFormClone() {
               </FieldLabel>
               {overallUploadedFile ? (
                 <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                  <img src={`${API_URL}/images/assets/${encodeURIComponent(overallUploadedFile)}`} alt="overall" className="w-full" />
+                  <img src={`/images/assets/${encodeURIComponent(overallUploadedFile)}`} alt="overall" className="w-full" />
                   <button onClick={() => setOverallUploadedFile(null)} className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white shadow hover:bg-red-600">
                     <X className="h-4 w-4" />
                   </button>

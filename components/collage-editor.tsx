@@ -150,15 +150,15 @@ function GridCell({
       onDrop={(e) => { e.preventDefault(); setDragOver(false); onDrop(index); }}
     >
       {!isEmpty && block.type === 'overall' ? (
-        <img className="ce-overall-img" src={`${API_URL}/images/assets/${encodeURIComponent(block.file || '')}`} alt="overall" />
+        <img className="ce-overall-img" src={`/images/assets/${encodeURIComponent(block.file || '')}`} alt="overall" />
       ) : !isEmpty && block.type === 'accessories' ? (
         <div className="ce-accessories-cell">
           <div className="ce-acc-item">
-            <img src={`${API_URL}/images/assets/emblem.png`} alt="" />
+            <img src={`/images/assets/emblem.png`} alt="" />
             <span>{block.emblemCount || 0}</span>
           </div>
           <div className="ce-acc-item">
-            <img src={`${API_URL}/images/assets/color-paper.png`} alt="" />
+            <img src={`/images/assets/color-paper.png`} alt="" />
             <span>{block.scrollCount || 0}</span>
           </div>
         </div>
@@ -166,27 +166,27 @@ function GridCell({
         <div className="ce-profile-block-preview">
           <div className="ce-stats-side">
             <div className="ce-stat-box">
-              <img src={`${API_URL}/images/assets/tuong1.png`} alt="" />
+              <img src={`/images/assets/tuong1.png`} alt="" />
               <div className="ce-txt"><span>Tướng</span><strong>{block.heroCount || 0}</strong></div>
             </div>
             <div className="ce-stat-box">
-              <img src={`${API_URL}/images/assets/skin1.png`} alt="" />
+              <img src={`/images/assets/skin1.png`} alt="" />
               <div className="ce-txt"><span>Trang phục</span><strong>{block.skinCount || 0}</strong></div>
             </div>
           </div>
           <div className="ce-right-wrap">
-            <img src={`${API_URL}/images/assets/custom_1776058497850_z7720356286845_f25ead227b91037983e770c90be77364.jpg`} alt="" />
-            <img className="ce-rename-card" src={`${API_URL}/images/assets/the-doi-ten.png`} alt="" />
+            <img src={`/images/assets/custom_1776058497850_z7720356286845_f25ead227b91037983e770c90be77364.jpg`} alt="" />
+            <img className="ce-rename-card" src={`/images/assets/the-doi-ten.png`} alt="" />
           </div>
         </div>
       ) : !isEmpty && block.type === 'asset' ? (
-        <img src={`${API_URL}/images/assets/${encodeURIComponent(block.file || '')}`} alt="" />
+        <img src={`/images/assets/${encodeURIComponent(block.file || '')}`} alt="" />
       ) : !isEmpty && block.type === 'skin' ? (
-        <img src={block.imageUrl ? `${API_URL}${block.imageUrl}` : ''} alt="" />
+        <img src={block.imageUrl || ''} alt="" />
       ) : null}
 
       {!isEmpty && block.badge && (
-        <img className="ce-badge-overlay" src={`${API_URL}/images/assets/${encodeURIComponent(block.badge)}`} alt="" />
+        <img className="ce-badge-overlay" src={`/images/assets/${encodeURIComponent(block.badge)}`} alt="" />
       )}
 
       {!isEmpty && (
@@ -453,12 +453,12 @@ export default function CollageEditor() {
 
   // Built-in tools
   const builtinTools = [
-    { label: 'Avatar/Rank (1x1)', img: `${API_URL}/images/assets/avatar1.png`, type: 'asset', file: 'avatar1.png', w: 1 },
-    { label: 'Danh Hiệu (2x1)', img: `${API_URL}/images/assets/tophero.webp`, type: 'asset', file: 'tophero.webp', w: 2 },
-    { label: 'Danh Hiệu (3x1)', img: `${API_URL}/images/assets/tophero.webp`, type: 'asset', file: 'tophero.webp', w: 3 },
-    { label: 'Thông Số (5x1)', img: `${API_URL}/images/assets/winrate.webp`, type: 'asset', file: 'winrate.webp', w: 5 },
-    { label: 'Yêu Thích (2x1)', img: `${API_URL}/images/assets/winrate.webp`, type: 'asset', file: 'winrate.webp', w: 2 },
-    { label: 'Hồ Sơ (4x1)', img: `${API_URL}/images/assets/winrate.webp`, type: 'profile', file: undefined, w: 4 },
+    { label: 'Avatar/Rank (1x1)', img: `/images/assets/avatar1.png`, type: 'asset', file: 'avatar1.png', w: 1 },
+    { label: 'Danh Hiệu (2x1)', img: `/images/assets/tophero.webp`, type: 'asset', file: 'tophero.webp', w: 2 },
+    { label: 'Danh Hiệu (3x1)', img: `/images/assets/tophero.webp`, type: 'asset', file: 'tophero.webp', w: 3 },
+    { label: 'Thông Số (5x1)', img: `/images/assets/winrate.webp`, type: 'asset', file: 'winrate.webp', w: 5 },
+    { label: 'Yêu Thích (2x1)', img: `/images/assets/winrate.webp`, type: 'asset', file: 'winrate.webp', w: 2 },
+    { label: 'Hồ Sơ (4x1)', img: `/images/assets/winrate.webp`, type: 'profile', file: undefined, w: 4 },
   ];
 
   return (
@@ -496,12 +496,12 @@ export default function CollageEditor() {
             )}
             <div className="ce-acc-inputs">
               <div className="ce-acc-input-row">
-                <img src={`${API_URL}/images/assets/emblem.png`} alt="emblem" />
+                <img src={`/images/assets/emblem.png`} alt="emblem" />
                 <input type="number" min={0} placeholder="0" value={emblemCount || ''} onChange={(e) => setEmblemCount(Number(e.target.value) || 0)} />
                 <span>Quân huy</span>
               </div>
               <div className="ce-acc-input-row">
-                <img src={`${API_URL}/images/assets/color-paper.png`} alt="scroll" />
+                <img src={`/images/assets/color-paper.png`} alt="scroll" />
                 <input type="number" min={0} placeholder="0" value={scrollCount || ''} onChange={(e) => setScrollCount(Number(e.target.value) || 0)} />
                 <span>Giấy cuộn</span>
               </div>
@@ -513,7 +513,7 @@ export default function CollageEditor() {
             <h3>Ảnh Tổng Quan</h3>
             {overallFile ? (
               <div className="ce-overall-preview">
-                <img src={`${API_URL}/images/assets/${encodeURIComponent(overallFile)}`} alt="overall" style={{ width: '100%', borderRadius: 6 }} />
+                <img src={`/images/assets/${encodeURIComponent(overallFile)}`} alt="overall" style={{ width: '100%', borderRadius: 6 }} />
                 <button className="ce-btn ce-btn-danger ce-btn-sm" onClick={() => setOverallFile(null)}>Xoá</button>
               </div>
             ) : (
@@ -543,7 +543,7 @@ export default function CollageEditor() {
               <ToolItem
                 key={`custom-${i}`}
                 label={`Custom (${t.w}x1)`}
-                imgSrc={`${API_URL}/images/assets/${encodeURIComponent(t.file)}`}
+                imgSrc={`/images/assets/${encodeURIComponent(t.file)}`}
                 type="asset"
                 file={t.file}
                 w={t.w}
@@ -576,7 +576,7 @@ export default function CollageEditor() {
             {overallFile && (
               <img
                 className="ce-overall-top"
-                src={`${API_URL}/images/assets/${encodeURIComponent(overallFile)}`}
+                src={`/images/assets/${encodeURIComponent(overallFile)}`}
                 alt="overall"
               />
             )}
