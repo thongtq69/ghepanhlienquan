@@ -5,7 +5,7 @@ import {
   type GridBlock,
   createEmptyBlock, defaultGrid, getOptimalColumns, buildDisplayGrid, buildBlocksFromAccountData,
 } from '@/lib/layout-utils';
-import { API_URL, API_TOKEN, proxyImg } from '@/lib/api-client';
+import { API_URL, API_TOKEN, proxyImg, apiGet } from '@/lib/api-client';
 
 const fetchHeaders: Record<string, string> = {
   'Content-Type': 'application/json',
@@ -305,11 +305,9 @@ export default function CollageEditor() {
     setAccountLoading(true);
     setAccountInfo(null);
     try {
-      const res = await fetch(`${API_URL}/api/account-skins?username=${encodeURIComponent(username)}`, { headers: fetchHeaders });
-      const data = await res.json();
-      if (!res.ok) {
-        const hint = data.available ? `\nCó sẵn: ${data.available.join(', ')}` : '';
-        alert(`${data.error}${hint}`);
+      const { ok, data } = await apiGet(`/api/account-skins?username=${encodeURIComponent(username)}`);
+      if (!ok) {
+        alert(data?.error || 'Lỗi tải tài khoản');
         return;
       }
       setAccountInfo({ username: data.username, heroes_count: data.heroes_count, skins_count: data.skins_count, total_matched: data.total_matched });
