@@ -95,25 +95,24 @@ export function buildDisplayGrid(blocks: GridBlock[], cols: number): GridBlock[]
 
 /** Build GridBlock array from account data + form inputs */
 export function buildBlocksFromAccountData(data: {
-  skins: Array<{ image: string; image_url?: string }>;
+  skins: Array<{ t: string }>;
   heroes_count: number;
   skins_count: number;
 }, opts: {
   overallFile?: string | null;
-  overallImageUrl?: string | null;
   emblemCount?: number;
   scrollCount?: number;
 }): GridBlock[] {
   return [
-    ...(opts.overallFile ? [{ id: 'b_overall', type: 'overall' as const, file: opts.overallFile, imageUrl: opts.overallImageUrl || undefined, w: 1 }] : []),
+    ...(opts.overallFile ? [{ id: 'b_overall', type: 'overall' as const, file: opts.overallFile, w: 1 }] : []),
     { id: 'b_avatar', type: 'asset' as const, file: 'avatar1.png', w: AVATAR_W },
     { id: 'b_accessories', type: 'accessories' as const, w: SCROLL_W, emblemCount: opts.emblemCount || 0, scrollCount: opts.scrollCount || 0 },
     { id: 'b_profile', type: 'profile' as const, w: PROFILE_W, heroCount: data.heroes_count, skinCount: data.skins_count },
     ...data.skins.map((s, i) => ({
       id: 'sk_' + i,
       type: 'skin' as const,
-      file: s.image,
-      imageUrl: s.image_url || undefined,
+      file: s.t,
+      imageUrl: `/img/t/${s.t}`,
       w: 1,
     })),
   ];

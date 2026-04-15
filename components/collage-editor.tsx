@@ -239,7 +239,7 @@ export default function CollageEditor() {
           skins_count: data.skins_count,
           total_matched: data.total_matched,
         });
-        setAccountSkins((data.skins || []).map((s: { image: string; image_url?: string }) => ({ name: s.image, url: s.image_url || '' })));
+        setAccountSkins((data.skins || []).map((s: { t: string }) => ({ name: s.t, url: `/img/t/${s.t}` })));
       }
       localStorage.removeItem('editorData');
     } catch { /* ignore */ }
@@ -312,7 +312,7 @@ export default function CollageEditor() {
       }
       setAccountInfo({ username: data.username, heroes_count: data.heroes_count, skins_count: data.skins_count, total_matched: data.total_matched });
       // Save account skins for Auto Fill
-      setAccountSkins((data.skins || []).map((s: { image: string; image_url?: string }) => ({ name: s.image, url: s.image_url || '' })));
+      setAccountSkins((data.skins || []).map((s: { t: string }) => ({ name: s.t, url: `/img/t/${s.t}` })));
       setGridBlocks(buildBlocksFromAccountData(data, { overallFile, emblemCount, scrollCount }));
     } catch (err: unknown) {
       alert('Lỗi kết nối BE: ' + (err instanceof Error ? err.message : err));

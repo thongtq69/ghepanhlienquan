@@ -419,7 +419,7 @@ export function MergeFormClone() {
   const [scrollCount, setScrollCount] = useState(0);
   const [jobId, setJobId] = useState<string | null>(null);
   const [jobStatus, setJobStatus] = useState<'idle' | 'processing' | 'done' | 'error'>('idle');
-  const [jobData, setJobData] = useState<{ username: string; heroes_count: number; skins_count: number; total_matched: number; skins: Array<{ image: string }> } | null>(null);
+  const [jobData, setJobData] = useState<{ username: string; heroes_count: number; skins_count: number; total_matched: number; skins: Array<{ t: string }> } | null>(null);
   const [jobError, setJobError] = useState<string | null>(null);
   const [merging, setMerging] = useState(false);
   const [overallUploadedFile, setOverallUploadedFile] = useState<string | null>(null);
