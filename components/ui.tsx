@@ -28,7 +28,7 @@ import {
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type GridBlock, getOptimalColumns, buildDisplayGrid, buildBlocksFromAccountData } from '@/lib/layout-utils';
-import { apiGet, apiPost, apiPostPlain, API_URL } from '@/lib/api-client';
+import { apiGet, apiPost, apiPostPlain, API_URL, proxyImg } from '@/lib/api-client';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -691,7 +691,7 @@ export function MergeFormClone() {
               </FieldLabel>
               {overallUploadedFile ? (
                 <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                  <img src={`/images/assets/${encodeURIComponent(overallUploadedFile)}`} alt="overall" className="w-full" />
+                  <img src={proxyImg(`/images/assets/${encodeURIComponent(overallUploadedFile)}`)} alt="overall" className="w-full" />
                   <button onClick={() => setOverallUploadedFile(null)} className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white shadow hover:bg-red-600">
                     <X className="h-4 w-4" />
                   </button>
