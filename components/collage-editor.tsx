@@ -5,7 +5,13 @@ import {
   type GridBlock,
   createEmptyBlock, defaultGrid, getOptimalColumns, buildDisplayGrid, buildBlocksFromAccountData,
 } from '@/lib/layout-utils';
-import { API_URL } from '@/lib/api-client';
+import { API_URL, API_TOKEN } from '@/lib/api-client';
+
+const ngrokHeaders: Record<string, string> = {
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${API_TOKEN}`,
+  'ngrok-skip-browser-warning': '1',
+};
 
 // ---------- Sub-components ----------
 
@@ -281,7 +287,7 @@ export default function CollageEditor() {
       try {
         const res = await fetch(`${API_URL}/api/upload-asset`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: ngrokHeaders,
           body: JSON.stringify({ filename: newFilename, filedata: base64data }),
         });
         const data = await res.json();
@@ -300,7 +306,7 @@ export default function CollageEditor() {
     setAccountLoading(true);
     setAccountInfo(null);
     try {
-      const res = await fetch(`${API_URL}/api/account-skins?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`${API_URL}/api/account-skins?username=${encodeURIComponent(username)}`, { headers: ngrokHeaders });
       const data = await res.json();
       if (!res.ok) {
         const hint = data.available ? `\nCó sẵn: ${data.available.join(', ')}` : '';
@@ -404,7 +410,7 @@ export default function CollageEditor() {
       try {
         const res = await fetch(`${API_URL}/api/upload-asset`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: ngrokHeaders,
           body: JSON.stringify({ filename: newFilename, filedata: base64data }),
         });
         const data = await res.json();

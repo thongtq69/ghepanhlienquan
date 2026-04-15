@@ -25,10 +25,16 @@ async function parseResponse(res: Response): Promise<{ ok: boolean; data: unknow
   return { ok: res.ok, data: json };
 }
 
+/** Common headers for all requests (includes ngrok bypass) */
+const commonHeaders: Record<string, string> = {
+  'Authorization': `Bearer ${API_TOKEN}`,
+  'ngrok-skip-browser-warning': '1',
+};
+
 /** Authenticated GET request */
 export async function apiGet(path: string): Promise<{ ok: boolean; data: any }> {
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { 'Authorization': `Bearer ${API_TOKEN}` },
+    headers: commonHeaders,
   });
   return parseResponse(res);
 }
@@ -37,10 +43,7 @@ export async function apiGet(path: string): Promise<{ ok: boolean; data: any }> 
 export async function apiPost(path: string, body: unknown): Promise<{ ok: boolean; data: any }> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_TOKEN}`,
-    },
+    headers: { ...commonHeaders, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   return parseResponse(res);
@@ -50,10 +53,7 @@ export async function apiPost(path: string, body: unknown): Promise<{ ok: boolea
 export async function apiPostPlain(path: string, body: unknown): Promise<{ ok: boolean; data: any }> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_TOKEN}`,
-    },
+    headers: { ...commonHeaders, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   return { ok: res.ok, data: await res.json() };
