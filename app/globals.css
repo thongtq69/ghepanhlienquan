@@ -670,6 +670,28 @@ img {
   z-index: 10;
 }
 
+.ce-empty-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.8);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 15;
+}
+
+.ce-grid-cell:hover .ce-empty-remove {
+  display: flex;
+}
+
 .ce-cell-code {
   position: absolute;
   bottom: 1px;

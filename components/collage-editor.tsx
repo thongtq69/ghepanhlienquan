@@ -125,12 +125,14 @@ function GridCell({
   onDrop,
   onDragStart,
   onSettings,
+  onRemoveEmpty,
 }: {
   block: GridBlock;
   index: number;
   onDrop: (index: number) => void;
   onDragStart: (data: { type: string; file?: string; w: number; badge?: string | null; sourceIndex: number }) => void;
   onSettings: (index: number) => void;
+  onRemoveEmpty: (index: number) => void;
 }) {
   const [dragOver, setDragOver] = useState(false);
   const isEmpty = block.type === 'empty';
@@ -193,6 +195,9 @@ function GridCell({
           <div className="ce-btn-drag">☩</div>
           <div className="ce-btn-set" onClick={(e) => { e.stopPropagation(); onSettings(index); }}>⚙</div>
         </div>
+      )}
+      {isEmpty && (
+        <div className="ce-empty-remove" onClick={() => onRemoveEmpty(index)} title="Xóa ô trống">✕</div>
       )}
     </div>
   );
@@ -589,6 +594,7 @@ export default function CollageEditor() {
                   onDrop={handleDrop}
                   onDragStart={handleCellDragStart}
                   onSettings={setEditIndex}
+                  onRemoveEmpty={(idx) => setGridBlocks(prev => prev.filter((_, j) => j !== idx))}
                 />
               ))}
             </div>
