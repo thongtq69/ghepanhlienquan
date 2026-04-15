@@ -25,10 +25,9 @@ async function parseResponse(res: Response): Promise<{ ok: boolean; data: unknow
   return { ok: res.ok, data: json };
 }
 
-/** Common headers for all requests (includes ngrok bypass) */
+/** Common headers for all requests */
 const commonHeaders: Record<string, string> = {
   'Authorization': `Bearer ${API_TOKEN}`,
-  'ngrok-skip-browser-warning': '1',
 };
 
 /** Authenticated GET request */
@@ -59,12 +58,10 @@ export async function apiPostPlain(path: string, body: unknown): Promise<{ ok: b
   return { ok: res.ok, data: await res.json() };
 }
 
-/** Convert a backend image path to a proxied URL (bypasses ngrok browser warning for <img> tags) */
+/** Convert a backend image path to a full URL */
 export function proxyImg(path: string): string {
   if (!path) return '';
-  // In local dev, call backend directly; on Vercel, go through /api/proxy
-  if (!API_URL || API_URL.includes('localhost')) return `${API_URL}${path}`;
-  return `/api/proxy?path=${encodeURIComponent(path)}`;
+  return `${API_URL}${path}`;
 }
 
 export { API_URL, API_TOKEN };

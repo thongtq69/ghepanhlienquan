@@ -7,10 +7,9 @@ import {
 } from '@/lib/layout-utils';
 import { API_URL, API_TOKEN, proxyImg } from '@/lib/api-client';
 
-const ngrokHeaders: Record<string, string> = {
+const fetchHeaders: Record<string, string> = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${API_TOKEN}`,
-  'ngrok-skip-browser-warning': '1',
 };
 
 // ---------- Sub-components ----------
@@ -287,7 +286,7 @@ export default function CollageEditor() {
       try {
         const res = await fetch(`${API_URL}/api/upload-asset`, {
           method: 'POST',
-          headers: ngrokHeaders,
+          headers: fetchHeaders,
           body: JSON.stringify({ filename: newFilename, filedata: base64data }),
         });
         const data = await res.json();
@@ -306,7 +305,7 @@ export default function CollageEditor() {
     setAccountLoading(true);
     setAccountInfo(null);
     try {
-      const res = await fetch(`${API_URL}/api/account-skins?username=${encodeURIComponent(username)}`, { headers: ngrokHeaders });
+      const res = await fetch(`${API_URL}/api/account-skins?username=${encodeURIComponent(username)}`, { headers: fetchHeaders });
       const data = await res.json();
       if (!res.ok) {
         const hint = data.available ? `\nCó sẵn: ${data.available.join(', ')}` : '';
@@ -410,7 +409,7 @@ export default function CollageEditor() {
       try {
         const res = await fetch(`${API_URL}/api/upload-asset`, {
           method: 'POST',
-          headers: ngrokHeaders,
+          headers: fetchHeaders,
           body: JSON.stringify({ filename: newFilename, filedata: base64data }),
         });
         const data = await res.json();
