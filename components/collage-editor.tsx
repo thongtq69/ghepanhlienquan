@@ -493,7 +493,7 @@ export default function CollageEditor() {
               <div className="ce-account-info">
                 <span>{accountInfo.username}</span>
                 <span>{accountInfo.heroes_count} tướng</span>
-                <span>{accountInfo.total_matched} skin</span>
+                <span>{accountInfo.skins_count} skin</span>
               </div>
             )}
             <div className="ce-acc-inputs">

@@ -675,7 +675,7 @@ export function MergeFormClone() {
                   </div>
                 )}
                 {jobStatus === 'done' && jobData && (
-                  <p className="text-sm text-emerald-600">Tìm thấy {jobData.heroes_count} tướng, {jobData.total_matched} skin</p>
+                  <p className="text-sm text-emerald-600">Tìm thấy {jobData.heroes_count} tướng, {jobData.skins_count} skin</p>
                 )}
               </div>
             </div>
@@ -845,7 +845,7 @@ export function MergeFormClone() {
         </section>
       </div>
 
-      <RightSummary onMerge={handleAutoMerge} merging={merging} jobStatus={jobStatus} skinCount={jobData?.total_matched || 0} />
+      <RightSummary onMerge={handleAutoMerge} merging={merging} jobStatus={jobStatus} skinCount={jobData?.skins_count || 0} />
     </div>
 
     {guideOpen ? (
