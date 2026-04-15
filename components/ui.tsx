@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ChevronDown,
   CreditCard,
+  Grid3X3,
   History,
   ImagePlus,
   LogOut,
@@ -25,7 +26,9 @@ import {
   recentMerges
 } from '@/lib/mock-data';
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type GridBlock, getOptimalColumns, buildDisplayGrid, buildBlocksFromAccountData } from '@/lib/layout-utils';
+import { apiGet, apiPost, apiPostPlain, API_URL } from '@/lib/api-client';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -78,7 +81,7 @@ const assets = {
   appIcon: '/assets/icon-192x192.png'
 };
 
-export function AppShell({ children, active }: { children: ReactNode; active: 'merge' | 'history' | 'payment' }) {
+export function AppShell({ children, active }: { children: ReactNode; active: 'merge' | 'history' | 'payment' | 'editor' }) {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900">
       <div className="flex min-h-screen">
@@ -103,6 +106,7 @@ export function AppShell({ children, active }: { children: ReactNode; active: 'm
               <SidebarLink href="/" active={active === 'merge'} icon={<ImagePlus className="h-4 w-4" />} label="Ghép ảnh" />
               <SidebarLink href="/history" active={active === 'history'} icon={<History className="h-4 w-4" />} label="Lịch sử ghép" />
               <SidebarLink href="/payment" active={active === 'payment'} icon={<Wallet className="h-4 w-4" />} label="Nạp tiền" />
+              <SidebarLink href="/editor" active={active === 'editor'} icon={<Grid3X3 className="h-4 w-4" />} label="Editor ghép ảnh" />
               <a
                 href="https://zalo.me/g/zbxyae446"
                 target="_blank"
@@ -277,7 +281,18 @@ function MiniStatInput({ icon, placeholder, type = 'text' }: { icon: string; pla
   );
 }
 
-function RightSummary() {
+function RightSummary({ onMerge, merging, jobStatus, skinCount }: {
+  onMerge: () => void;
+  merging: boolean;
+  jobStatus: 'idle' | 'processing' | 'done' | 'error';
+  skinCount: number;
+}) {
+  const cost = skinCount > 0 ? skinCount * 150 : 0;
+  const btnDisabled = merging || jobStatus === 'idle';
+  const btnText = merging ? 'Đang ghép ảnh...'
+    : jobStatus === 'processing' ? 'Đang xử lý tài khoản...'
+    : 'Ghép Ảnh Tự Động';
+
   return (
     <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
@@ -285,19 +300,39 @@ function RightSummary() {
           <div>
             <p className="text-sm font-medium text-slate-500">Thành tiền</p>
             <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-              <span>-- ảnh</span>
+              <span>{skinCount > 0 ? `${skinCount} ảnh` : '-- ảnh'}</span>
               <span>✖</span>
               <span>150 ₫</span>
             </div>
             <div className="mt-2 flex items-end justify-between gap-3">
               <span className="text-sm text-slate-500">Tổng cộng</span>
-              <span className="text-3xl font-bold tracking-tight text-slate-900">--</span>
+              <span className="text-3xl font-bold tracking-tight text-slate-900">{cost > 0 ? `${cost.toLocaleString()} ₫` : '--'}</span>
             </div>
           </div>
 
-          <button data-guide="merge-button" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1677ff] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0f6cf0]">
+          {jobStatus === 'processing' && (
+            <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm text-blue-600">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              Đang xử lý tài khoản...
+            </div>
+          )}
+          {jobStatus === 'done' && skinCount > 0 && (
+            <div className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-600">
+              Sẵn sàng ghép {skinCount} skin
+            </div>
+          )}
+
+          <button
+            data-guide="merge-button"
+            onClick={onMerge}
+            disabled={btnDisabled}
+            className={cn(
+              'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition',
+              btnDisabled ? 'bg-slate-300 cursor-not-allowed' : 'bg-[#1677ff] hover:bg-[#0f6cf0]'
+            )}
+          >
             <ImagePlus className="h-4 w-4" />
-            Ghép Ảnh Tự Động
+            {btnText}
           </button>
 
           <div data-guide="merge-result" className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
@@ -376,6 +411,125 @@ export function MergeFormClone() {
   const [guideAnchor, setGuideAnchor] = useState<ReturnType<typeof getGuideTargetRect>>(null);
   const currentGuide = guideSteps[guideStep];
   const rafRef = useRef<number | null>(null);
+
+  // --- Form state ---
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [emblemCount, setEmblemCount] = useState(0);
+  const [scrollCount, setScrollCount] = useState(0);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<'idle' | 'processing' | 'done' | 'error'>('idle');
+  const [jobData, setJobData] = useState<{ username: string; heroes_count: number; skins_count: number; total_matched: number; skins: Array<{ image: string }> } | null>(null);
+  const [jobError, setJobError] = useState<string | null>(null);
+  const [merging, setMerging] = useState(false);
+  const [overallUploadedFile, setOverallUploadedFile] = useState<string | null>(null);
+  const overallInputRef = useRef<HTMLInputElement>(null);
+
+  // Start background processing when credentials are entered
+  const startProcessing = useCallback(async () => {
+    if (!username.trim() || !password.trim()) return;
+    if (jobStatus === 'processing' || jobStatus === 'done') return;
+    setJobStatus('processing');
+    setJobError(null);
+    try {
+      const { ok, data } = await apiPost('/api/start-process', { username: username.trim(), password: password.trim() });
+      if (!ok) { setJobStatus('error'); setJobError(data.error); return; }
+      setJobId(data.job_id);
+    } catch {
+      setJobStatus('error');
+      setJobError('Lỗi kết nối server');
+    }
+  }, [username, password, jobStatus]);
+
+  // Poll for processing status (encrypted response)
+  useEffect(() => {
+    if (!jobId || jobStatus !== 'processing') return;
+    let failCount = 0;
+    const interval = setInterval(async () => {
+      try {
+        const { ok, data } = await apiGet(`/api/process-status?job_id=${jobId}`);
+        if (!ok) {
+          failCount++;
+          if (failCount >= 3) {
+            setJobStatus('error');
+            setJobError(data?.error || 'Server không phản hồi');
+            clearInterval(interval);
+          }
+          return;
+        }
+        failCount = 0;
+        if (data.status === 'done') {
+          setJobStatus('done');
+          setJobData(data.data);
+          clearInterval(interval);
+        } else if (data.status === 'error') {
+          setJobStatus('error');
+          setJobError(data.error || 'Xử lý thất bại');
+          clearInterval(interval);
+        }
+      } catch (err) {
+        failCount++;
+        console.error('[Poll error]', err);
+        if (failCount >= 3) {
+          setJobStatus('error');
+          setJobError('Lỗi kết nối server — vui lòng thử lại');
+          clearInterval(interval);
+        }
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [jobId, jobStatus]);
+
+  // Upload overall image handler
+  const handleOverallFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64data = ev.target?.result;
+      const newFilename = 'overall_' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      try {
+        const { data } = await apiPostPlain('/api/upload-asset', { filename: newFilename, filedata: base64data });
+        if (data.success) setOverallUploadedFile(data.filename);
+      } catch { /* ignore */ }
+    };
+    reader.readAsDataURL(file);
+    if (overallInputRef.current) overallInputRef.current.value = '';
+  };
+
+  // Auto-merge handler
+  const handleAutoMerge = useCallback(async () => {
+    if (jobStatus === 'processing') return; // still processing, button shows loading
+    if (jobStatus !== 'done' || !jobData) {
+      alert('Vui lòng nhập tài khoản và mật khẩu trước');
+      return;
+    }
+    setMerging(true);
+    try {
+      const blocks = buildBlocksFromAccountData(jobData, { overallFile: overallUploadedFile, emblemCount, scrollCount });
+      const columns = getOptimalColumns(blocks);
+      const layout = buildDisplayGrid(blocks, columns);
+
+      const { data: result } = await apiPostPlain('/api/generate', { columns, layout });
+      if (!result.success) { alert('Lỗi ghép ảnh: ' + result.error); return; }
+
+      // Store data for editor
+      localStorage.setItem('editorData', JSON.stringify({
+        username: jobData.username,
+        heroes_count: jobData.heroes_count,
+        skins_count: jobData.skins_count,
+        total_matched: jobData.total_matched,
+        skins: jobData.skins,
+        emblemCount, scrollCount,
+        overallFile: overallUploadedFile,
+      }));
+      window.location.href = '/editor';
+    } catch (err: unknown) {
+      alert('Lỗi: ' + (err instanceof Error ? err.message : err));
+    } finally {
+      setMerging(false);
+    }
+  }, [jobStatus, jobData, overallUploadedFile, emblemCount, scrollCount]);
 
   useEffect(() => {
     if (!guideOpen) return;
@@ -495,9 +649,34 @@ export function MergeFormClone() {
               <div data-guide="account-info" className="space-y-0.5">
                 <FieldLabel>Thông tin tài khoản</FieldLabel>
                 <div className="grid gap-3">
-                  <TextInput placeholder="Tên tài khoản" />
-                  <TextInput placeholder="Mật khẩu" type="password" />
+                  <input
+                    type="text"
+                    placeholder="Tên tài khoản"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); if (jobStatus !== 'idle') { setJobStatus('idle'); setJobData(null); setJobId(null); } }}
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#1677ff] focus:ring-4 focus:ring-[#1677ff]/10"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Mật khẩu"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={startProcessing}
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#1677ff] focus:ring-4 focus:ring-[#1677ff]/10"
+                  />
                 </div>
+                {jobStatus === 'error' && jobError && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-red-500">{jobError}</p>
+                    <button
+                      onClick={() => { setJobStatus('idle'); setJobId(null); setJobError(null); }}
+                      className="text-xs text-blue-600 underline hover:text-blue-800"
+                    >Thử lại</button>
+                  </div>
+                )}
+                {jobStatus === 'done' && jobData && (
+                  <p className="text-sm text-emerald-600">Tìm thấy {jobData.heroes_count} tướng, {jobData.total_matched} skin</p>
+                )}
               </div>
             </div>
 
@@ -510,7 +689,19 @@ export function MergeFormClone() {
               <FieldLabel hint={<span className="text-xs font-normal text-[#1677ff]">(Xem ảnh mẫu)</span>}>
                 Ảnh tổng quan tài khoản
               </FieldLabel>
-              <UploadArea preview={assets.overall} />
+              {overallUploadedFile ? (
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  <img src={`${API_URL}/images/assets/${encodeURIComponent(overallUploadedFile)}`} alt="overall" className="w-full" />
+                  <button onClick={() => setOverallUploadedFile(null)} className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white shadow hover:bg-red-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div onClick={() => overallInputRef.current?.click()} className="cursor-pointer">
+                  <UploadArea preview={assets.overall} />
+                </div>
+              )}
+              <input ref={overallInputRef} type="file" accept="image/*" className="hidden" onChange={handleOverallFileChange} />
             </div>
 
             <div className="grid gap-x-4 gap-y-2 md:grid-cols-2 md:items-center">
@@ -526,8 +717,22 @@ export function MergeFormClone() {
             <div className="space-y-3.5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4.5">
               <CheckRow label="🧰 Đạo cụ thêm (quân huy, giấy cuộn tuyệt sắc)" />
               <div className="grid gap-x-4 gap-y-4 md:grid-cols-2 md:items-start">
-                <MiniStatInput icon={assets.emblem} placeholder="Số quân huy" type="number" />
-                <MiniStatInput icon={assets.colorPaper} placeholder="Giấy cuộn tuyệt sắc" type="number" />
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                      <Image src={assets.emblem} alt="emblem" fill sizes="36px" className="object-contain p-1.5" />
+                    </div>
+                    <input type="number" placeholder="Số quân huy" value={emblemCount || ''} onChange={(e) => setEmblemCount(Number(e.target.value) || 0)} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#1677ff] focus:ring-4 focus:ring-[#1677ff]/10" />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                      <Image src={assets.colorPaper} alt="scroll" fill sizes="36px" className="object-contain p-1.5" />
+                    </div>
+                    <input type="number" placeholder="Giấy cuộn tuyệt sắc" value={scrollCount || ''} onChange={(e) => setScrollCount(Number(e.target.value) || 0)} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#1677ff] focus:ring-4 focus:ring-[#1677ff]/10" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -640,7 +845,7 @@ export function MergeFormClone() {
         </section>
       </div>
 
-      <RightSummary />
+      <RightSummary onMerge={handleAutoMerge} merging={merging} jobStatus={jobStatus} skinCount={jobData?.total_matched || 0} />
     </div>
 
     {guideOpen ? (
