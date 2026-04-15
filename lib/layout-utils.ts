@@ -103,34 +103,27 @@ export function buildDisplayGrid(blocks: GridBlock[], cols: number): GridBlock[]
     grid.push({ ...overall, w: cols });
   }
 
-  // Row 1: avatar + accessories + skins
+  // Row 1: avatar + accessories + skins to fill row
   if (avatar) grid.push(avatar);
   grid.push(accessories || { id: 'b_accessories', type: 'accessories', w: SCROLL_W, emblemCount: 0, scrollCount: 0 });
   const row1Capacity = cols - AVATAR_W - SCROLL_W;
-  for (let i = 0; i < row1Capacity; i++) {
-    grid.push(skinIdx < skins.length ? skins[skinIdx++] : createEmptyBlock());
+  for (let i = 0; i < row1Capacity && skinIdx < skins.length; i++) {
+    grid.push(skins[skinIdx++]);
   }
 
-  // Row 2: profile + skins
+  // Row 2: profile + skins to fill row
   if (profile) grid.push(profile);
   const row2Capacity = cols - PROFILE_W;
-  for (let i = 0; i < row2Capacity; i++) {
-    grid.push(skinIdx < skins.length ? skins[skinIdx++] : createEmptyBlock());
+  for (let i = 0; i < row2Capacity && skinIdx < skins.length; i++) {
+    grid.push(skins[skinIdx++]);
   }
 
-  // Remaining rows
+  // Remaining skins
   while (skinIdx < skins.length) {
     grid.push(skins[skinIdx++]);
   }
 
-  // Pad last row
-  const totalNonOverall = grid.filter(b => b.type !== 'overall').length;
-  const remainder = totalNonOverall % cols;
-  if (remainder > 0) {
-    for (let i = 0; i < cols - remainder; i++) {
-      grid.push(createEmptyBlock());
-    }
-  }
+  // No padding — backend skips empty cells, editor allows manual cleanup
 
   return grid;
 }
