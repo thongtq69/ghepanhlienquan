@@ -11,9 +11,11 @@ export const paymentPromotions = [
 export const paymentInfo = {
   email: 'dangthihuongphi@gmail.com',
   balance: '90 ₫',
-  bankName: 'MB Bank',
-  accountNumber: '0970000000',
-  accountHolder: 'DANG THI HUONG PHI',
+  bankName: 'BIDV',
+  bankBranch: 'PGD Lạc Long Quân',
+  accountNumber: '42210000278097',
+  accountHolder: 'LE DUC ANH',
+  qrUrl: 'https://img.vietqr.io/image/BIDV-42210000278097-compact.png',
   transferCode: 'GSLTE294'
 };
 

@@ -986,7 +986,10 @@ export function PaymentClone() {
           <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:p-6">
             <h2 className="text-lg font-semibold text-slate-900">Thông Tin Chuyển Khoản</h2>
             <div className="mt-5 grid gap-4">
-              <InfoRow label="Ngân hàng:" value={paymentInfo.bankName} />
+              <div className="flex justify-center">
+                <img src={paymentInfo.qrUrl} alt="QR chuyển khoản" className="h-48 w-48 rounded-xl border border-slate-200" />
+              </div>
+              <InfoRow label="Ngân hàng:" value={`${paymentInfo.bankName} — ${paymentInfo.bankBranch}`} />
               <InfoRow label="Số tài khoản:" value={paymentInfo.accountNumber} />
               <InfoRow label="Chủ tài khoản:" value={paymentInfo.accountHolder} />
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
